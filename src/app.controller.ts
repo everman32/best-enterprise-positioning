@@ -17,6 +17,6 @@ export class AppController {
 
   @Post("bestCoordinates")
   getBestCoordinates(@Body() shippingDto: ShippingDto): Coordinates {
-    return this.appService.getBestCooridates(shippingDto);
+    return this.appService.getBestCoordinates(shippingDto);
   }
 }

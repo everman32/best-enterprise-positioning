@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { Coordinates } from "./types/coordinates.types";
-import { CustomerDto } from "./dto/customer.dto";
 import { ShippingDto } from "./dto/shipping.dto";
 
 @Injectable()
@@ -9,27 +8,24 @@ export class AppService {
     return authorizedCapital / productVolume;
   }
 
-  getBestCooridates(shippingDto: ShippingDto): Coordinates {
-    const { authorizedCapital, productVolume, iterationNumber, customers } =
-      shippingDto;
+  getBestCoordinates({
+    authorizedCapital,
+    productVolume,
+    iterationNumber,
+    customers,
+  }: ShippingDto): Coordinates {
     const costs = this.getCosts(authorizedCapital, productVolume);
-    let { x, y } = this.getFirstIterationCoordinates(
-      authorizedCapital,
-      customers,
-      costs
-    );
 
-    for (let i = 1; i < iterationNumber; i++) {
+    let x = 0,
+      y = 0;
+
+    for (let i = 0; i < iterationNumber; i++) {
       const { xDividend, yDividend, divisor } = customers.reduce(
-        (acc, customer) => {
-          const { coordinates, transportTariff } = customer;
-
+        (acc, { coordinates, transportTariff }) => {
           const multiplier =
             (authorizedCapital * transportTariff) /
             (costs *
-              Math.sqrt(
-                Math.pow(coordinates.x - x, 2) + Math.pow(coordinates.y - y, 2)
-              ));
+              Math.sqrt((coordinates.x - x) ** 2 + (coordinates.y - y) ** 2));
 
           acc.xDividend += coordinates.x * multiplier;
           acc.yDividend += coordinates.y * multiplier;
@@ -43,29 +39,6 @@ export class AppService {
       x = xDividend / divisor;
       y = yDividend / divisor;
     }
-
     return { x, y };
-  }
-
-  getFirstIterationCoordinates(
-    authorizedCapital: number,
-    customers: CustomerDto[],
-    costs: number
-  ) {
-    const { xDividend, yDividend, divisor } = customers.reduce(
-      (acc, customer) => {
-        const { coordinates, transportTariff } = customer;
-
-        const multiplier = (authorizedCapital * transportTariff) / costs;
-        acc.xDividend += coordinates.x * multiplier;
-        acc.yDividend += coordinates.y * multiplier;
-        acc.divisor += multiplier;
-
-        return acc;
-      },
-      { xDividend: 0, yDividend: 0, divisor: 0 }
-    );
-
-    return { x: xDividend / divisor, y: yDividend / divisor };
   }
 }
