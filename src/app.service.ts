@@ -13,13 +13,38 @@ export class AppService {
     const { authorizedCapital, productVolume, iterationNumber, customers } =
       shippingDto;
     const costs = this.getCosts(authorizedCapital, productVolume);
-    const firstIterationCoordinates = this.getFirstIterationCoordinates(
+    let { x, y } = this.getFirstIterationCoordinates(
       authorizedCapital,
       customers,
       costs
     );
 
-    return firstIterationCoordinates;
+    for (let i = 1; i < iterationNumber; i++) {
+      const { xDividend, yDividend, divisor } = customers.reduce(
+        (acc, customer) => {
+          const { coordinates, transportTariff } = customer;
+
+          const multiplier =
+            (authorizedCapital * transportTariff) /
+            (costs *
+              Math.sqrt(
+                Math.pow(coordinates.x - x, 2) + Math.pow(coordinates.y - y, 2)
+              ));
+
+          acc.xDividend += coordinates.x * multiplier;
+          acc.yDividend += coordinates.y * multiplier;
+          acc.divisor += multiplier;
+
+          return acc;
+        },
+        { xDividend: 0, yDividend: 0, divisor: 0 }
+      );
+
+      x = xDividend / divisor;
+      y = yDividend / divisor;
+    }
+
+    return { x, y };
   }
 
   getFirstIterationCoordinates(
@@ -30,13 +55,11 @@ export class AppService {
     const { xDividend, yDividend, divisor } = customers.reduce(
       (acc, customer) => {
         const { coordinates, transportTariff } = customer;
-        acc.xDividend +=
-          (coordinates.x * authorizedCapital * transportTariff) / costs;
 
-        acc.yDividend +=
-          (coordinates.y * authorizedCapital * transportTariff) / costs;
-
-        acc.divisor += (authorizedCapital * customer.transportTariff) / costs;
+        const multiplier = (authorizedCapital * transportTariff) / costs;
+        acc.xDividend += coordinates.x * multiplier;
+        acc.yDividend += coordinates.y * multiplier;
+        acc.divisor += multiplier;
 
         return acc;
       },
