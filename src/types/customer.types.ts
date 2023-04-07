@@ -1,6 +1,6 @@
 import { Coordinates } from "src/types/coordinates.types";
 
-export class Customer {
+export type Customer = {
   coordinates: Coordinates;
   transportTariff: number;
-}
+};
