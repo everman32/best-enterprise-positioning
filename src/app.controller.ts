@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Post, Body } from "@nestjs/common";
 import { AppService } from "./app.service";
-import { Coordinates } from "./types/coordinates.types";
+import { Coordinates } from "./type/coordinates.type";
 import { ShippingDto } from "./dto/shipping.dto";
 
 @Controller()

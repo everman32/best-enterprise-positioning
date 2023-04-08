@@ -1,4 +1,4 @@
-import { Coordinates } from "src/types/coordinates.types";
+import { Coordinates } from "./coordinates.type";
 
 export type Customer = {
   coordinates: Coordinates;

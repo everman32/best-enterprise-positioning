@@ -1,4 +1,4 @@
-import { Customer } from "../types/customer.types";
+import { Customer } from "../type/customer.type";
 
 export class ShippingDto {
   authorizedCapital: number;

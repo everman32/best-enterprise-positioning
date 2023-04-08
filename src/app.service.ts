@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Coordinates } from "./types/coordinates.types";
+import { Coordinates } from "./type/coordinates.type";
 import { ShippingDto } from "./dto/shipping.dto";
 
 @Injectable()
