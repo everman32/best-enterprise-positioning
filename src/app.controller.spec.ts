@@ -21,7 +21,7 @@ describe("AppController", () => {
   describe("root", () => {
     it(`should return ${COSTS}`, () => {
       expect(
-        appController.getCosts(AUTHORIZED_CAPITAL, PRODUCT_VOLUME)
+        appController.getPresentCosts(AUTHORIZED_CAPITAL, PRODUCT_VOLUME)
       ).toBeCloseTo(COSTS, 3);
     });
   });

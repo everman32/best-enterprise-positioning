@@ -4,7 +4,7 @@ import { ShippingDto } from "./dto/shipping.dto";
 
 @Injectable()
 export class AppService {
-  getCosts(authorizedCapital: number, productVolume: number): number {
+  getPresentCosts(authorizedCapital: number, productVolume: number): number {
     return authorizedCapital / productVolume;
   }
 
@@ -14,7 +14,7 @@ export class AppService {
     iterationNumber,
     customers,
   }: ShippingDto): Coordinates {
-    const costs = this.getCosts(authorizedCapital, productVolume);
+    const costs = this.getPresentCosts(authorizedCapital, productVolume);
 
     let x = 0,
       y = 0;

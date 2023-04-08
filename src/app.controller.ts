@@ -7,12 +7,12 @@ import { ShippingDto } from "./dto/shipping.dto";
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get("costs")
-  getCosts(
+  @Get("presentCosts")
+  getPresentCosts(
     @Query("authorizedCapital") authorizedCapital: number,
     @Query("productVolume") productVolume: number
   ): number {
-    return this.appService.getCosts(authorizedCapital, productVolume);
+    return this.appService.getPresentCosts(authorizedCapital, productVolume);
   }
 
   @Post("bestCoordinates")
