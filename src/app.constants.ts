@@ -1,0 +1,2 @@
+export const EARTH_MEAN_RADIUS = 6371;
+export const DEGREE_RADIAN_DIFFERENCE = 180;
