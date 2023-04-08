@@ -10,31 +10,30 @@ export class AppService {
 
   getBestCoordinates({
     authorizedCapital,
-    productVolume,
     iterationNumber,
     customers,
   }: ShippingDto): Coordinates {
-    const costs = this.getPresentCosts(authorizedCapital, productVolume);
-
     let x = 0,
       y = 0;
 
     for (let i = 0; i < iterationNumber; i++) {
-      const { xDividend, yDividend, divisor } = customers.reduce(
-        (acc, { coordinates, transportTariff }) => {
-          const multiplier =
-            (authorizedCapital * transportTariff) /
-            (costs *
-              Math.sqrt((coordinates.x - x) ** 2 + (coordinates.y - y) ** 2));
+      const { xDividend, yDividend, divisor, transportCosts } =
+        customers.reduce(
+          (acc, { coordinates, transportTariff, productVolume }) => {
+            const multiplier =
+              (authorizedCapital * transportTariff) /
+              (this.getPresentCosts(authorizedCapital, productVolume) *
+                Math.sqrt((coordinates.x - x) ** 2 + (coordinates.y - y) ** 2));
 
-          acc.xDividend += coordinates.x * multiplier;
-          acc.yDividend += coordinates.y * multiplier;
-          acc.divisor += multiplier;
+            acc.xDividend += coordinates.x * multiplier;
+            acc.yDividend += coordinates.y * multiplier;
+            acc.divisor += multiplier;
+            acc.transportCosts += productVolume * transportTariff;
 
-          return acc;
-        },
-        { xDividend: 0, yDividend: 0, divisor: 0 }
-      );
+            return acc;
+          },
+          { xDividend: 0, yDividend: 0, divisor: 0, transportCosts: 0 }
+        );
 
       x = xDividend / divisor;
       y = yDividend / divisor;
