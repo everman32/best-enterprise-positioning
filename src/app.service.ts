@@ -3,6 +3,7 @@ import { Coordinates } from "./type/coordinates.type";
 import { ShippingDto } from "./dto/shipping.dto";
 import { Positioning } from "./type/positioning.type";
 import { DEGREE_RADIAN_DIFFERENCE, EARTH_MEAN_RADIUS } from "./app.constants";
+import { Customer } from "./type/customer.type";
 
 @Injectable()
 export class AppService {
@@ -12,62 +13,104 @@ export class AppService {
 
   getBestCoordinates({
     authorizedCapital,
-    iterationNumber,
+    threshold,
     customers,
   }: ShippingDto): Coordinates {
-    const positionings: Positioning[] = Array.from(
-      { length: iterationNumber },
-      () => ({
-        coordinates: { x: 0, y: 0 },
-        costs: 0,
-      })
-    );
+    const positionings: Positioning[] = [
+      { coordinates: { x: 0, y: 0 }, transportCosts: 0 },
+    ];
 
-    positionings.forEach((positioning, index) => {
-      const previousIndex = index === 0 ? index : index - 1;
-
+    for (let index = 0; ; index++) {
+      const prevPositioning = positionings[index === 0 ? index : index - 1];
       const { xDividend, yDividend, divisor, transportCosts } =
-        customers.reduce(
-          (acc, { coordinates, transportTariff, productVolume }) => {
-            const multiplier =
-              (authorizedCapital * transportTariff) /
-              (this.getPresentCosts(authorizedCapital, productVolume) *
-                Math.sqrt(
-                  (coordinates.x - positionings[previousIndex].coordinates.x) **
-                    2 +
-                    (coordinates.y -
-                      positionings[previousIndex].coordinates.y) **
-                      2
-                ));
-
-            acc.xDividend += coordinates.x * multiplier;
-            acc.yDividend += coordinates.y * multiplier;
-            acc.divisor += multiplier;
-            acc.transportCosts +=
-              productVolume *
-              transportTariff *
-              this.getDistanceBetweenPoints(
-                positionings[previousIndex].coordinates.x,
-                positionings[previousIndex].coordinates.y,
-                coordinates.x,
-                coordinates.y
-              );
-
-            return acc;
-          },
-          { xDividend: 0, yDividend: 0, divisor: 0, transportCosts: 0 }
+        this.getCustomerTotals(
+          customers,
+          authorizedCapital,
+          prevPositioning.coordinates
         );
 
-      positioning.coordinates.x = xDividend / divisor;
-      positioning.coordinates.y = yDividend / divisor;
-      positioning.costs = transportCosts;
-    });
+      positionings[index] = {
+        coordinates: {
+          x: xDividend / divisor,
+          y: yDividend / divisor,
+        },
+        transportCosts,
+      };
 
-    const minCostsPositioning = positionings.reduce((current, previous) =>
-      current.costs < previous.costs ? current : previous
+      if (
+        index > 0 &&
+        Math.abs(transportCosts - prevPositioning.transportCosts) <= threshold
+      ) {
+        break;
+      }
+    }
+    return positionings[positionings.length - 1].coordinates;
+  }
+
+  getCustomerTotals(
+    customers: Customer[],
+    authorizedCapital: number,
+    positioningCoordinates: Coordinates
+  ) {
+    return customers.reduce(
+      (acc, { coordinates: { x, y }, transportTariff, productVolume }) => {
+        const multiplier = this.getMultiplier(
+          authorizedCapital,
+          transportTariff,
+          productVolume,
+          { x, y },
+          positioningCoordinates
+        );
+
+        acc.xDividend += x * multiplier;
+        acc.yDividend += y * multiplier;
+        acc.divisor += multiplier;
+        acc.transportCosts += this.getTransportCosts(
+          productVolume,
+          transportTariff,
+          positioningCoordinates,
+          { x, y }
+        );
+
+        return acc;
+      },
+      { xDividend: 0, yDividend: 0, divisor: 0, transportCosts: 0 }
     );
+  }
 
-    return minCostsPositioning.coordinates;
+  getMultiplier(
+    authorizedCapital: number,
+    transportTariff: number,
+    productVolume: number,
+    coordinates: Coordinates,
+    positioningCoordinates: Coordinates
+  ): number {
+    return (
+      (authorizedCapital * transportTariff) /
+      (this.getPresentCosts(authorizedCapital, productVolume) *
+        Math.sqrt(
+          (coordinates.x - positioningCoordinates.x) ** 2 +
+            (coordinates.y - positioningCoordinates.y) ** 2
+        ))
+    );
+  }
+
+  getTransportCosts(
+    productVolume: number,
+    transportTariff: number,
+    positioningCoordinates: Coordinates,
+    coordinates: Coordinates
+  ): number {
+    return (
+      productVolume *
+      transportTariff *
+      this.getDistanceBetweenPoints(
+        positioningCoordinates.x,
+        positioningCoordinates.y,
+        coordinates.x,
+        coordinates.y
+      )
+    );
   }
 
   getDistanceBetweenPoints(
