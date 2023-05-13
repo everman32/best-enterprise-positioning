@@ -17,7 +17,7 @@ export class AppService {
     customers,
   }: ShippingDto): Coordinates {
     const positionings: Positioning[] = [
-      { coordinates: { x: 0, y: 0 }, transportCosts: 0 },
+      { coordinates: { latitude: 0, longitude: 0 }, transportCosts: 0 },
     ];
 
     for (let index = 0; ; index++) {
@@ -31,8 +31,8 @@ export class AppService {
 
       positionings[index] = {
         coordinates: {
-          x: xDividend / divisor,
-          y: yDividend / divisor,
+          latitude: xDividend / divisor,
+          longitude: yDividend / divisor,
         },
         transportCosts,
       };
@@ -53,23 +53,26 @@ export class AppService {
     positioningCoordinates: Coordinates
   ) {
     return customers.reduce(
-      (acc, { coordinates: { x, y }, transportTariff, productVolume }) => {
+      (
+        acc,
+        { coordinates: { latitude, longitude }, transportTariff, productVolume }
+      ) => {
         const multiplier = this.getMultiplier(
           authorizedCapital,
           transportTariff,
           productVolume,
-          { x, y },
+          { latitude, longitude },
           positioningCoordinates
         );
 
-        acc.xDividend += x * multiplier;
-        acc.yDividend += y * multiplier;
+        acc.xDividend += latitude * multiplier;
+        acc.yDividend += longitude * multiplier;
         acc.divisor += multiplier;
         acc.transportCosts += this.getTransportCosts(
           productVolume,
           transportTariff,
           positioningCoordinates,
-          { x, y }
+          { latitude, longitude }
         );
 
         return acc;
@@ -89,8 +92,8 @@ export class AppService {
       (authorizedCapital * transportTariff) /
       (this.getPresentCosts(authorizedCapital, productVolume) *
         Math.sqrt(
-          (coordinates.x - positioningCoordinates.x) ** 2 +
-            (coordinates.y - positioningCoordinates.y) ** 2
+          (coordinates.latitude - positioningCoordinates.latitude) ** 2 +
+            (coordinates.longitude - positioningCoordinates.longitude) ** 2
         ))
     );
   }
@@ -105,10 +108,10 @@ export class AppService {
       productVolume *
       transportTariff *
       this.getDistanceBetweenPoints(
-        positioningCoordinates.x,
-        positioningCoordinates.y,
-        coordinates.x,
-        coordinates.y
+        positioningCoordinates.latitude,
+        positioningCoordinates.longitude,
+        coordinates.latitude,
+        coordinates.longitude
       )
     );
   }
