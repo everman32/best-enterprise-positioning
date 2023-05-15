@@ -44,6 +44,15 @@ export class AppService {
         break;
       }
     }
+    positionings[positionings.length - 1].coordinates.latitude =
+      Math.round(
+        positionings[positionings.length - 1].coordinates.latitude * 10e4
+      ) / 10e4;
+    positionings[positionings.length - 1].coordinates.longitude =
+      Math.round(
+        positionings[positionings.length - 1].coordinates.longitude * 10e4
+      ) / 10e4;
+
     return positionings[positionings.length - 1].coordinates;
   }
 
