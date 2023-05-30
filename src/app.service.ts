@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Coordinates } from "./type/coordinates.type";
-import { ShippingDto } from "./dto/shipping.dto";
-import { Positioning } from "./type/positioning.type";
+import { TripDto } from "./dto/trip.dto";
+import { Enterprise } from "./type/enterprise.type";
 import {
   DEGREE_RADIAN_DIFFERENCE,
   EARTH_MEAN_RADIUS,
@@ -17,66 +17,66 @@ export class AppService {
     return authorizedCapital / productVolume;
   }
 
-  getBestCoordinates({
+  getOptimalEnterprisePositioning({
     authorizedCapital,
     threshold,
     customers,
-  }: ShippingDto): Coordinates {
-    const initialPositioning: Coordinates = this.getCustomerInitialPositioning(
+  }: TripDto): Coordinates {
+    const initialCoordinates: Coordinates = this.getInitialEnterpisePositioning(
       customers,
       authorizedCapital
     );
 
-    const positionings: Positioning[] = [];
+    const enterprises: Enterprise[] = [];
 
-    positionings.push({
-      coordinates: initialPositioning,
-      transportCosts: this.getCustomerTransportCosts(
+    enterprises.push({
+      coordinates: initialCoordinates,
+      transportCosts: this.getEnterpriseTransportCosts(
         customers,
-        initialPositioning
+        initialCoordinates
       ),
     });
 
     do {
-      const newPositioning = this.getCustomerIterativePositioning(
+      const newCoordinates = this.getIterativeEnterprisePositioning(
         customers,
         authorizedCapital,
-        positionings.at(LAST_POSITIONING_INDEX).coordinates
+        enterprises.at(LAST_POSITIONING_INDEX).coordinates
       );
 
-      positionings.push({
-        coordinates: newPositioning,
-        transportCosts: this.getCustomerTransportCosts(
+      enterprises.push({
+        coordinates: newCoordinates,
+        transportCosts: this.getEnterpriseTransportCosts(
           customers,
-          newPositioning
+          newCoordinates
         ),
       });
     } while (
-      positionings.at(PENULTIMATE_POSITIONING_INDEX).transportCosts -
-        positionings.at(LAST_POSITIONING_INDEX).transportCosts >
+      enterprises.at(PENULTIMATE_POSITIONING_INDEX).transportCosts -
+        enterprises.at(LAST_POSITIONING_INDEX).transportCosts >
       threshold
     );
 
     return {
       latitude: this.roundDecimalToCoordinates(
-        positionings.at(LAST_POSITIONING_INDEX).coordinates.latitude
+        enterprises.at(LAST_POSITIONING_INDEX).coordinates.latitude
       ),
       longitude: this.roundDecimalToCoordinates(
-        positionings.at(LAST_POSITIONING_INDEX).coordinates.longitude
+        enterprises.at(LAST_POSITIONING_INDEX).coordinates.longitude
       ),
     };
   }
 
-  getCustomerInitialPositioning(
+  getInitialEnterpisePositioning(
     customers: Customer[],
     authorizedCapital: number
-  ) {
+  ): Coordinates {
     const { xDividend, yDividend, divisor } = customers.reduce(
       (
         acc,
         { coordinates: { latitude, longitude }, transportTariff, productVolume }
       ) => {
-        const multiplier = this.getMultiplier(
+        const multiplier = this.getCustomerMultiplier(
           authorizedCapital,
           transportTariff,
           productVolume
@@ -94,25 +94,25 @@ export class AppService {
     return { latitude: xDividend / divisor, longitude: yDividend / divisor };
   }
 
-  getCustomerIterativePositioning(
+  getIterativeEnterprisePositioning(
     customers: Customer[],
     authorizedCapital: number,
-    positioningCoordinates: Coordinates
-  ) {
+    enterpriseCoordinates: Coordinates
+  ): Coordinates {
     const { xDividend, yDividend, divisor } = customers.reduce(
       (
         acc,
         { coordinates: { latitude, longitude }, transportTariff, productVolume }
       ) => {
         const multiplier =
-          this.getMultiplier(
+          this.getCustomerMultiplier(
             authorizedCapital,
             transportTariff,
             productVolume
           ) /
           Math.sqrt(
-            (latitude - positioningCoordinates.latitude) ** 2 +
-              (longitude - positioningCoordinates.longitude) ** 2
+            (latitude - enterpriseCoordinates.latitude) ** 2 +
+              (longitude - enterpriseCoordinates.longitude) ** 2
           );
 
         acc.xDividend += latitude * multiplier;
@@ -127,10 +127,10 @@ export class AppService {
     return { latitude: xDividend / divisor, longitude: yDividend / divisor };
   }
 
-  getCustomerTransportCosts(
+  getEnterpriseTransportCosts(
     customers: Customer[],
-    positioningCoordinates: Coordinates
-  ) {
+    enterpriseCoordinates: Coordinates
+  ): number {
     const { transportCosts } = customers.reduce(
       (
         acc,
@@ -139,7 +139,7 @@ export class AppService {
         acc.transportCosts += this.getTransportCosts(
           productVolume,
           transportTariff,
-          positioningCoordinates,
+          enterpriseCoordinates,
           { latitude, longitude }
         );
 
@@ -151,7 +151,7 @@ export class AppService {
     return transportCosts;
   }
 
-  getMultiplier(
+  getCustomerMultiplier(
     authorizedCapital: number,
     transportTariff: number,
     productVolume: number
@@ -165,17 +165,17 @@ export class AppService {
   getTransportCosts(
     productVolume: number,
     transportTariff: number,
-    positioningCoordinates: Coordinates,
-    coordinates: Coordinates
+    firstCoordinates: Coordinates,
+    secondCoordinates: Coordinates
   ): number {
     return (
       productVolume *
       transportTariff *
       this.getDistanceBetweenPoints(
-        positioningCoordinates.latitude,
-        positioningCoordinates.longitude,
-        coordinates.latitude,
-        coordinates.longitude
+        firstCoordinates.latitude,
+        firstCoordinates.longitude,
+        secondCoordinates.latitude,
+        secondCoordinates.longitude
       )
     );
   }

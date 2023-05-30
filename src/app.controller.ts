@@ -1,7 +1,7 @@
 import { Controller, Get, Query, Post, Body } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { Coordinates } from "./type/coordinates.type";
-import { ShippingDto } from "./dto/shipping.dto";
+import { TripDto } from "./dto/trip.dto";
 
 @Controller()
 export class AppController {
@@ -16,7 +16,7 @@ export class AppController {
   }
 
   @Post("bestCoordinates")
-  getBestCoordinates(@Body() shippingDto: ShippingDto): Coordinates {
-    return this.appService.getBestCoordinates(shippingDto);
+  getBestCoordinates(@Body() tripDto: TripDto): Coordinates {
+    return this.appService.getOptimalEnterprisePositioning(tripDto);
   }
 }

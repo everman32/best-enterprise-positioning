@@ -1,6 +1,6 @@
 import { Coordinates } from "./coordinates.type";
 
-export type Positioning = {
+export type Enterprise = {
   coordinates: Coordinates;
   transportCosts: number;
 };
