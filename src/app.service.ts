@@ -2,7 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { Coordinates } from "./type/coordinates.type";
 import { ShippingDto } from "./dto/shipping.dto";
 import { Positioning } from "./type/positioning.type";
-import { DEGREE_RADIAN_DIFFERENCE, EARTH_MEAN_RADIUS } from "./app.constants";
+import {
+  DEGREE_RADIAN_DIFFERENCE,
+  EARTH_MEAN_RADIUS,
+  GOOGLE_COORDINATES_PRECISION,
+  LAST_POSITIONING_INDEX,
+  PENULTIMATE_POSITIONING_INDEX,
+} from "./app.constants";
 import { Customer } from "./type/customer.type";
 
 @Injectable()
@@ -16,49 +22,49 @@ export class AppService {
     threshold,
     customers,
   }: ShippingDto): Coordinates {
-    const positionings: Positioning[] = [
-      { coordinates: { latitude: 0, longitude: 0 }, transportCosts: 0 },
-    ];
+    const initialPositioning: Coordinates = this.getCustomerInitialPositioning(
+      customers,
+      authorizedCapital
+    );
 
-    for (let index = 0; ; index++) {
-      const prevPositioning = positionings[index === 0 ? index : index - 1];
+    const positionings: Positioning[] = [];
 
-      const { latitude, longitude } = this.getCustomerIterativePositioning(
-          customers,
-          authorizedCapital,
-          prevPositioning.coordinates
-        );
-
-      const { transportCosts } = this.getCustomerTransportCosts(
+    positionings.push({
+      coordinates: initialPositioning,
+      transportCosts: this.getCustomerTransportCosts(
         customers,
-        prevPositioning.coordinates
+        initialPositioning
+      ),
+    });
+
+    do {
+      const newPositioning = this.getCustomerIterativePositioning(
+        customers,
+        authorizedCapital,
+        positionings.at(LAST_POSITIONING_INDEX).coordinates
       );
 
-      positionings[index] = {
-        coordinates: {
-          latitude,
-          longitude,
-        },
-        transportCosts,
-      };
+      positionings.push({
+        coordinates: newPositioning,
+        transportCosts: this.getCustomerTransportCosts(
+          customers,
+          newPositioning
+        ),
+      });
+    } while (
+      positionings.at(PENULTIMATE_POSITIONING_INDEX).transportCosts -
+        positionings.at(LAST_POSITIONING_INDEX).transportCosts >
+      threshold
+    );
 
-      if (
-        index > 0 &&
-        Math.abs(transportCosts - prevPositioning.transportCosts) <= threshold
-      ) {
-        break;
-      }
-    }
-    positionings[positionings.length - 1].coordinates.latitude =
-      Math.round(
-        positionings[positionings.length - 1].coordinates.latitude * 10e4
-      ) / 10e4;
-    positionings[positionings.length - 1].coordinates.longitude =
-      Math.round(
-        positionings[positionings.length - 1].coordinates.longitude * 10e4
-      ) / 10e4;
-
-    return positionings[positionings.length - 1].coordinates;
+    return {
+      latitude: this.roundDecimalToCoordinates(
+        positionings.at(LAST_POSITIONING_INDEX).coordinates.latitude
+      ),
+      longitude: this.roundDecimalToCoordinates(
+        positionings.at(LAST_POSITIONING_INDEX).coordinates.longitude
+      ),
+    };
   }
 
   getCustomerInitialPositioning(
@@ -100,14 +106,14 @@ export class AppService {
       ) => {
         const multiplier =
           this.getMultiplier(
-          authorizedCapital,
-          transportTariff,
+            authorizedCapital,
+            transportTariff,
             productVolume
           ) /
           Math.sqrt(
             (latitude - positioningCoordinates.latitude) ** 2 +
               (longitude - positioningCoordinates.longitude) ** 2
-        );
+          );
 
         acc.xDividend += latitude * multiplier;
         acc.yDividend += longitude * multiplier;
@@ -125,7 +131,7 @@ export class AppService {
     customers: Customer[],
     positioningCoordinates: Coordinates
   ) {
-    return customers.reduce(
+    const { transportCosts } = customers.reduce(
       (
         acc,
         { coordinates: { latitude, longitude }, transportTariff, productVolume }
@@ -141,6 +147,8 @@ export class AppService {
       },
       { transportCosts: 0 }
     );
+
+    return transportCosts;
   }
 
   getMultiplier(
@@ -193,5 +201,12 @@ export class AppService {
 
   degreesToRadians(degrees: number): number {
     return (degrees * Math.PI) / DEGREE_RADIAN_DIFFERENCE;
+  }
+
+  roundDecimalToCoordinates(decimal: number) {
+    return (
+      Math.round(decimal * GOOGLE_COORDINATES_PRECISION) /
+      GOOGLE_COORDINATES_PRECISION
+    );
   }
 }
