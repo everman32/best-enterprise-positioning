@@ -22,12 +22,17 @@ export class AppService {
 
     for (let index = 0; ; index++) {
       const prevPositioning = positionings[index === 0 ? index : index - 1];
-      const { xDividend, yDividend, divisor, transportCosts } =
-        this.getCustomerTotals(
+
+      const { xDividend, yDividend, divisor } = this.getCustomerPositioning(
           customers,
           authorizedCapital,
           prevPositioning.coordinates
         );
+
+      const { transportCosts } = this.getCustomerTransportCosts(
+        customers,
+        prevPositioning.coordinates
+      );
 
       positionings[index] = {
         coordinates: {
@@ -56,7 +61,7 @@ export class AppService {
     return positionings[positionings.length - 1].coordinates;
   }
 
-  getCustomerTotals(
+  getCustomerPositioning(
     customers: Customer[],
     authorizedCapital: number,
     positioningCoordinates: Coordinates
@@ -77,6 +82,22 @@ export class AppService {
         acc.xDividend += latitude * multiplier;
         acc.yDividend += longitude * multiplier;
         acc.divisor += multiplier;
+
+        return acc;
+      },
+      { xDividend: 0, yDividend: 0, divisor: 0 }
+    );
+  }
+
+  getCustomerTransportCosts(
+    customers: Customer[],
+    positioningCoordinates: Coordinates
+  ) {
+    return customers.reduce(
+      (
+        acc,
+        { coordinates: { latitude, longitude }, transportTariff, productVolume }
+      ) => {
         acc.transportCosts += this.getTransportCosts(
           productVolume,
           transportTariff,
@@ -86,7 +107,7 @@ export class AppService {
 
         return acc;
       },
-      { xDividend: 0, yDividend: 0, divisor: 0, transportCosts: 0 }
+      { transportCosts: 0 }
     );
   }
 
