@@ -23,7 +23,8 @@ export class AppService {
     for (let index = 0; ; index++) {
       const prevPositioning = positionings[index === 0 ? index : index - 1];
 
-      const { xDividend, yDividend, divisor } = this.getCustomerPositioning(
+      const { xDividend, yDividend, divisor } =
+        this.getCustomerIterativePositioning(
           customers,
           authorizedCapital,
           prevPositioning.coordinates
@@ -61,10 +62,9 @@ export class AppService {
     return positionings[positionings.length - 1].coordinates;
   }
 
-  getCustomerPositioning(
+  getCustomerInitialPositioning(
     customers: Customer[],
-    authorizedCapital: number,
-    positioningCoordinates: Coordinates
+    authorizedCapital: number
   ) {
     return customers.reduce(
       (
@@ -74,9 +74,38 @@ export class AppService {
         const multiplier = this.getMultiplier(
           authorizedCapital,
           transportTariff,
-          productVolume,
-          { latitude, longitude },
-          positioningCoordinates
+          productVolume
+        );
+
+        acc.xDividend += latitude * multiplier;
+        acc.yDividend += longitude * multiplier;
+        acc.divisor += multiplier;
+
+        return acc;
+      },
+      { xDividend: 0, yDividend: 0, divisor: 0 }
+    );
+  }
+
+  getCustomerIterativePositioning(
+    customers: Customer[],
+    authorizedCapital: number,
+    positioningCoordinates: Coordinates
+  ) {
+    return customers.reduce(
+      (
+        acc,
+        { coordinates: { latitude, longitude }, transportTariff, productVolume }
+      ) => {
+        const multiplier =
+          this.getMultiplier(
+          authorizedCapital,
+          transportTariff,
+            productVolume
+          ) /
+          Math.sqrt(
+            (latitude - positioningCoordinates.latitude) ** 2 +
+              (longitude - positioningCoordinates.longitude) ** 2
         );
 
         acc.xDividend += latitude * multiplier;
@@ -114,17 +143,11 @@ export class AppService {
   getMultiplier(
     authorizedCapital: number,
     transportTariff: number,
-    productVolume: number,
-    coordinates: Coordinates,
-    positioningCoordinates: Coordinates
+    productVolume: number
   ): number {
     return (
       (authorizedCapital * transportTariff) /
-      (this.getPresentCosts(authorizedCapital, productVolume) *
-        Math.sqrt(
-          (coordinates.latitude - positioningCoordinates.latitude) ** 2 +
-            (coordinates.longitude - positioningCoordinates.longitude) ** 2
-        ))
+      this.getPresentCosts(authorizedCapital, productVolume)
     );
   }
 
