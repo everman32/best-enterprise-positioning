@@ -18,14 +18,11 @@ export class AppService {
   }
 
   getOptimalEnterprisePositioning({
-    authorizedCapital,
     threshold,
     customers,
   }: TripDto): Coordinates {
-    const initialCoordinates: Coordinates = this.getInitialEnterpisePositioning(
-      customers,
-      authorizedCapital
-    );
+    const initialCoordinates: Coordinates =
+      this.getInitialEnterpisePositioning(customers);
 
     const enterprises: Enterprise[] = [];
 
@@ -40,7 +37,6 @@ export class AppService {
     do {
       const newCoordinates = this.getIterativeEnterprisePositioning(
         customers,
-        authorizedCapital,
         enterprises.at(LAST_POSITIONING_INDEX).coordinates
       );
 
@@ -67,17 +63,13 @@ export class AppService {
     };
   }
 
-  getInitialEnterpisePositioning(
-    customers: Customer[],
-    authorizedCapital: number
-  ): Coordinates {
+  getInitialEnterpisePositioning(customers: Customer[]): Coordinates {
     const { xDividend, yDividend, divisor } = customers.reduce(
       (
         acc,
         { coordinates: { latitude, longitude }, transportTariff, productVolume }
       ) => {
         const multiplier = this.getCustomerMultiplier(
-          authorizedCapital,
           transportTariff,
           productVolume
         );
@@ -96,7 +88,6 @@ export class AppService {
 
   getIterativeEnterprisePositioning(
     customers: Customer[],
-    authorizedCapital: number,
     enterpriseCoordinates: Coordinates
   ): Coordinates {
     const { xDividend, yDividend, divisor } = customers.reduce(
@@ -105,11 +96,7 @@ export class AppService {
         { coordinates: { latitude, longitude }, transportTariff, productVolume }
       ) => {
         const multiplier =
-          this.getCustomerMultiplier(
-            authorizedCapital,
-            transportTariff,
-            productVolume
-          ) /
+          this.getCustomerMultiplier(transportTariff, productVolume) /
           Math.sqrt(
             (latitude - enterpriseCoordinates.latitude) ** 2 +
               (longitude - enterpriseCoordinates.longitude) ** 2
@@ -152,14 +139,10 @@ export class AppService {
   }
 
   getCustomerMultiplier(
-    authorizedCapital: number,
     transportTariff: number,
     productVolume: number
   ): number {
-    return (
-      (authorizedCapital * transportTariff) /
-      this.getPresentCosts(authorizedCapital, productVolume)
-    );
+    return transportTariff * productVolume;
   }
 
   getTransportCosts(
@@ -169,8 +152,7 @@ export class AppService {
     secondCoordinates: Coordinates
   ): number {
     return (
-      productVolume *
-      transportTariff *
+      this.getCustomerMultiplier(transportTariff, productVolume) *
       this.getDistanceBetweenPoints(
         firstCoordinates.latitude,
         firstCoordinates.longitude,
