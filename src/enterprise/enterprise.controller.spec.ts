@@ -1,9 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
+import { EnterpriseController } from "./enterprise.controller";
+import { EnterpriseService } from "./enterprise.service";
 
 describe("AppController", () => {
-  let appController: AppController;
+  let enterpriseController: EnterpriseController;
 
   const AUTHORIZED_CAPITAL = 5.5;
   const PRODUCT_VOLUME = 2.1;
@@ -11,17 +11,17 @@ describe("AppController", () => {
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
-      providers: [AppService],
+      controllers: [EnterpriseController],
+      providers: [EnterpriseService],
     }).compile();
 
-    appController = app.get<AppController>(AppController);
+    enterpriseController = app.get<EnterpriseController>(EnterpriseController);
   });
 
   describe("root", () => {
     it(`should return ${COSTS}`, () => {
       expect(
-        appController.getPresentCosts(AUTHORIZED_CAPITAL, PRODUCT_VOLUME)
+        enterpriseController.getPresentCosts(AUTHORIZED_CAPITAL, PRODUCT_VOLUME)
       ).toBeCloseTo(COSTS, 3);
     });
   });

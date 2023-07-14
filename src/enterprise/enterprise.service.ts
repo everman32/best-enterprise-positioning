@@ -1,18 +1,18 @@
 import { Injectable } from "@nestjs/common";
-import { Coordinates } from "./type/coordinates.type";
 import { TripDto } from "./dto/trip.dto";
-import { Enterprise } from "./type/enterprise.type";
 import {
-  DEGREE_RADIAN_DIFFERENCE,
-  EARTH_MEAN_RADIUS,
-  GOOGLE_COORDINATES_PRECISION,
+  Coordinates,
+  Enterprise,
   LAST_POSITIONING_INDEX,
   PENULTIMATE_POSITIONING_INDEX,
-} from "./app.constants";
-import { Customer } from "./type/customer.type";
+  Customer,
+  EARTH_MEAN_RADIUS,
+  DEGREE_RADIAN_DIFFERENCE,
+  GOOGLE_COORDINATES_PRECISION,
+} from "./enterprise.constants";
 
 @Injectable()
-export class AppService {
+export class EnterpriseService {
   getPresentCosts(authorizedCapital: number, productVolume: number): number {
     return authorizedCapital / productVolume;
   }

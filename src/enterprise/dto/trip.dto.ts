@@ -1,4 +1,4 @@
-import { Customer } from "../type/customer.type";
+import { Customer } from "../enterprise.constants";
 
 export class TripDto {
   threshold: number;
