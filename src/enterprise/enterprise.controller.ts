@@ -1,6 +1,13 @@
-import { Controller, Get, Query, Post, Body } from "@nestjs/common";
-import { TripDto } from "./dto/trip.dto";
-import { Coordinates } from "./enterprise.constants";
+import {
+  Controller,
+  Get,
+  Query,
+  Post,
+  Body,
+  ValidationPipe,
+} from "@nestjs/common";
+import { CoordinatesDto } from "../dto/coordinates.dto";
+import { TripDto } from "../dto/trip.dto";
 import { EnterpriseService } from "./enterprise.service";
 
 @Controller("enterprise")
@@ -19,7 +26,9 @@ export class EnterpriseController {
   }
 
   @Post("bestCoordinates")
-  getBestCoordinates(@Body() tripDto: TripDto): Coordinates {
+  getBestCoordinates(
+    @Body(new ValidationPipe()) tripDto: TripDto
+  ): CoordinatesDto {
     return this.enterpriseService.getOptimalEnterprisePositioning(tripDto);
   }
 }

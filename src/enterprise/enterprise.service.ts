@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { GeolocationService } from "src/geolocation/geolocation.service";
-import { TripDto } from "./dto/trip.dto";
+import { CoordinatesDto } from "../dto/coordinates.dto";
+import { CustomerDto } from "../dto/customer.dto";
+import { EnterpriseDto } from "../dto/enterprise.dto";
+import { TripDto } from "../dto/trip.dto";
 import {
-  Coordinates,
-  Enterprise,
   LAST_POSITIONING_INDEX,
   PENULTIMATE_POSITIONING_INDEX,
-  Customer,
 } from "./enterprise.constants";
 
 @Injectable()
@@ -20,11 +20,11 @@ export class EnterpriseService {
   getOptimalEnterprisePositioning({
     threshold,
     customers,
-  }: TripDto): Coordinates {
-    const initialCoordinates: Coordinates =
+  }: TripDto): CoordinatesDto {
+    const initialCoordinates: CoordinatesDto =
       this.getInitialEnterpisePositioning(customers);
 
-    const enterprises: Enterprise[] = [];
+    const enterprises: EnterpriseDto[] = [];
 
     enterprises.push({
       coordinates: initialCoordinates,
@@ -63,7 +63,7 @@ export class EnterpriseService {
     };
   }
 
-  getInitialEnterpisePositioning(customers: Customer[]): Coordinates {
+  getInitialEnterpisePositioning(customers: CustomerDto[]): CoordinatesDto {
     const { xDividend, yDividend, divisor } = customers.reduce(
       (
         acc,
@@ -87,9 +87,9 @@ export class EnterpriseService {
   }
 
   getIterativeEnterprisePositioning(
-    customers: Customer[],
-    enterpriseCoordinates: Coordinates
-  ): Coordinates {
+    customers: CustomerDto[],
+    enterpriseCoordinates: CoordinatesDto
+  ): CoordinatesDto {
     const { xDividend, yDividend, divisor } = customers.reduce(
       (
         acc,
@@ -115,8 +115,8 @@ export class EnterpriseService {
   }
 
   getEnterpriseTransportCosts(
-    customers: Customer[],
-    enterpriseCoordinates: Coordinates
+    customers: CustomerDto[],
+    enterpriseCoordinates: CoordinatesDto
   ): number {
     const { transportCosts } = customers.reduce(
       (
@@ -148,8 +148,8 @@ export class EnterpriseService {
   getTransportCosts(
     productVolume: number,
     transportTariff: number,
-    firstCoordinates: Coordinates,
-    secondCoordinates: Coordinates
+    firstCoordinates: CoordinatesDto,
+    secondCoordinates: CoordinatesDto
   ): number {
     return (
       this.getCustomerMultiplier(transportTariff, productVolume) *
