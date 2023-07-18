@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { CustomerService } from "src/customer/customer.service";
 import { GeolocationService } from "src/geolocation/geolocation.service";
 import { CoordinatesDto } from "../dto/coordinates.dto";
 import { CustomerDto } from "../dto/customer.dto";
@@ -11,11 +12,10 @@ import {
 
 @Injectable()
 export class EnterpriseService {
-  constructor(private readonly geolocationService: GeolocationService) {}
-
-  getPresentCosts(authorizedCapital: number, productVolume: number): number {
-    return authorizedCapital / productVolume;
-  }
+  constructor(
+    private readonly geolocationService: GeolocationService,
+    private readonly customerService: CustomerService
+  ) {}
 
   getOptimalPositioning({
     authorizedCapital,
@@ -70,7 +70,7 @@ export class EnterpriseService {
         acc,
         { coordinates: { latitude, longitude }, transportTariff, productVolume }
       ) => {
-        const multiplier = this.getCustomerMultiplier(
+        const multiplier = this.customerService.getMultiplier(
           authorizedCapital,
           transportTariff,
           productVolume
@@ -99,7 +99,7 @@ export class EnterpriseService {
         { coordinates: { latitude, longitude }, transportTariff, productVolume }
       ) => {
         const multiplier =
-          this.getCustomerMultiplier(
+          this.customerService.getMultiplier(
             authorizedCapital,
             transportTariff,
             productVolume
@@ -130,7 +130,7 @@ export class EnterpriseService {
         acc,
         { coordinates: { latitude, longitude }, transportTariff, productVolume }
       ) => {
-        acc.transportCosts += this.getCustomerTransportCosts(
+        acc.transportCosts += this.customerService.getTransportCosts(
           productVolume,
           transportTariff,
           enterpriseCoordinates,
@@ -143,33 +143,5 @@ export class EnterpriseService {
     );
 
     return transportCosts;
-  }
-
-  getCustomerMultiplier(
-    authorizedCapital: number,
-    transportTariff: number,
-    productVolume: number
-  ): number {
-    return (
-      transportTariff / this.getPresentCosts(authorizedCapital, productVolume)
-    );
-  }
-
-  getCustomerTransportCosts(
-    productVolume: number,
-    transportTariff: number,
-    firstCoordinates: CoordinatesDto,
-    secondCoordinates: CoordinatesDto
-  ): number {
-    return (
-      productVolume *
-      transportTariff *
-      this.geolocationService.getDistanceBetweenPoints(
-        firstCoordinates.latitude,
-        firstCoordinates.longitude,
-        secondCoordinates.latitude,
-        secondCoordinates.longitude
-      )
-    );
   }
 }
