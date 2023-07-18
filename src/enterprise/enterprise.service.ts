@@ -17,26 +17,25 @@ export class EnterpriseService {
     return authorizedCapital / productVolume;
   }
 
-  getOptimalEnterprisePositioning({
+  getOptimalPositioning({
     authorizedCapital,
     threshold,
     customers,
   }: TripDto): CoordinatesDto {
-    const initialCoordinates: CoordinatesDto =
-      this.getInitialEnterpisePositioning(authorizedCapital, customers);
+    const initialCoordinates: CoordinatesDto = this.getInitialPositioning(
+      authorizedCapital,
+      customers
+    );
 
     const enterprises: EnterpriseDto[] = [];
 
     enterprises.push({
       coordinates: initialCoordinates,
-      transportCosts: this.getEnterpriseTransportCosts(
-        customers,
-        initialCoordinates
-      ),
+      transportCosts: this.getTransportCosts(customers, initialCoordinates),
     });
 
     do {
-      const newCoordinates = this.getIterativeEnterprisePositioning(
+      const newCoordinates = this.getIterativePositioning(
         authorizedCapital,
         customers,
         enterprises.at(LAST_POSITIONING_INDEX).coordinates
@@ -44,10 +43,7 @@ export class EnterpriseService {
 
       enterprises.push({
         coordinates: newCoordinates,
-        transportCosts: this.getEnterpriseTransportCosts(
-          customers,
-          newCoordinates
-        ),
+        transportCosts: this.getTransportCosts(customers, newCoordinates),
       });
     } while (
       enterprises.at(PENULTIMATE_POSITIONING_INDEX).transportCosts -
@@ -65,7 +61,7 @@ export class EnterpriseService {
     };
   }
 
-  getInitialEnterpisePositioning(
+  getInitialPositioning(
     authorizedCapital: number,
     customers: CustomerDto[]
   ): CoordinatesDto {
@@ -92,7 +88,7 @@ export class EnterpriseService {
     return { latitude: xDividend / divisor, longitude: yDividend / divisor };
   }
 
-  getIterativeEnterprisePositioning(
+  getIterativePositioning(
     authorizedCapital: number,
     customers: CustomerDto[],
     enterpriseCoordinates: CoordinatesDto
@@ -125,7 +121,7 @@ export class EnterpriseService {
     return { latitude: xDividend / divisor, longitude: yDividend / divisor };
   }
 
-  getEnterpriseTransportCosts(
+  getTransportCosts(
     customers: CustomerDto[],
     enterpriseCoordinates: CoordinatesDto
   ): number {
@@ -134,7 +130,7 @@ export class EnterpriseService {
         acc,
         { coordinates: { latitude, longitude }, transportTariff, productVolume }
       ) => {
-        acc.transportCosts += this.getTransportCosts(
+        acc.transportCosts += this.getCustomerTransportCosts(
           productVolume,
           transportTariff,
           enterpriseCoordinates,
@@ -159,7 +155,7 @@ export class EnterpriseService {
     );
   }
 
-  getTransportCosts(
+  getCustomerTransportCosts(
     productVolume: number,
     transportTariff: number,
     firstCoordinates: CoordinatesDto,

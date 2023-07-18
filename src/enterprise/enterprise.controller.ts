@@ -25,10 +25,10 @@ export class EnterpriseController {
     );
   }
 
-  @Post("bestCoordinates")
-  getBestCoordinates(
+  @Post("optimalPositioning")
+  getOptimalPositioning(
     @Body(new ValidationPipe()) tripDto: TripDto
   ): CoordinatesDto {
-    return this.enterpriseService.getOptimalEnterprisePositioning(tripDto);
+    return this.enterpriseService.getOptimalPositioning(tripDto);
   }
 }
