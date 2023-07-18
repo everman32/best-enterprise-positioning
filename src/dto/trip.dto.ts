@@ -4,6 +4,11 @@ import { CustomerDto } from "./customer.dto";
 
 export class TripDto {
   @Max(100000000)
+  @Min(1000)
+  @IsNumber()
+  authorizedCapital: number;
+
+  @Max(100000000)
   @Min(0.01)
   @IsNumber()
   threshold: number;
