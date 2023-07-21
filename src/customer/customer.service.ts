@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { CoordinatesDto } from "src/dto/coordinates.dto";
-import { GeolocationService } from "src/geolocation/geolocation.service";
+import { CoordinatesDto } from "../dto/coordinates.dto";
+import { GeolocationService } from "../geolocation/geolocation.service";
 
 @Injectable()
 export class CustomerService {
