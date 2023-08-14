@@ -38,7 +38,7 @@ export class EnterpriseService {
       const newCoordinates = this.getIterativePositioning(
         authorizedCapital,
         customers,
-        enterprises.at(LAST_POSITIONING_INDEX).coordinates
+        enterprises[LAST_POSITIONING_INDEX].coordinates
       );
 
       enterprises.push({
@@ -46,17 +46,17 @@ export class EnterpriseService {
         transportCosts: this.getTransportCosts(customers, newCoordinates),
       });
     } while (
-      enterprises.at(PENULTIMATE_POSITIONING_INDEX).transportCosts -
-        enterprises.at(LAST_POSITIONING_INDEX).transportCosts >
+      enterprises[PENULTIMATE_POSITIONING_INDEX].transportCosts -
+        enterprises[LAST_POSITIONING_INDEX].transportCosts >
       threshold
     );
 
     return {
       latitude: this.geolocationService.roundDecimalToCoordinates(
-        enterprises.at(LAST_POSITIONING_INDEX).coordinates.latitude
+        enterprises[LAST_POSITIONING_INDEX].coordinates.latitude
       ),
       longitude: this.geolocationService.roundDecimalToCoordinates(
-        enterprises.at(LAST_POSITIONING_INDEX).coordinates.longitude
+        enterprises[LAST_POSITIONING_INDEX].coordinates.longitude
       ),
     };
   }
