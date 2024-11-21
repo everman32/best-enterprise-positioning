@@ -1,15 +1,12 @@
-import { fileURLToPath } from "node:url";
-import path from "node:path";
-
 import globals from "globals";
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import jestPlugin from "eslint-plugin-jest";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 
-// const dirname = import.meta.dirname; // for config with .mjs ext
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
+// const filename = fileURLToPath(import.meta.url); // for config with .js ext
+// const dirname = path.dirname(filename);
+const dirname = import.meta.dirname;
 
 export default [
   {
@@ -45,7 +42,7 @@ export default [
   },
   eslintPluginPrettierRecommended,
   {
-    files: ["**/*.js"],
+    files: ["**/*.mjs"],
     ...tseslint.configs.disableTypeChecked,
   },
   {
